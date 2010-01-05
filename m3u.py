@@ -2,34 +2,50 @@
 
 import os
 import sys
+import re
 
-filetypes = "mp3;mp4"
+usage = "m3u.py [options]\n-d <dir>\n-p <playlist-dir>\n-t <pipe-sep-filetypes>"
 
-# Create music dir or use default
+filetypes = "mp3|mp4"
 musicDir = "/home/dan/snd/"
-if len(sys.argv) == 2:
-  musicDir = sys.argv[1]
+storageDir = musicDir+"playlists/"
+
+for args in range(1,len(sys.argv)-1,2):
+  arg = sys.argv[args]
+  val = sys.argv[args+1]
+  try:
+    if arg == '-d':
+      musicDir = val
+    elif arg == '-p':
+      storageDir = val
+    elif arg == '-t':
+      filetypes = val
+    else:
+      raise Exception
+  except:
+    print usage
+    exit()
+
 if musicDir[-1] != '/':
   musicDir = musicDir+'/'
-#Create m3u storage dir or use default
-storageDir = musicDir+"playlists/"
-if len(sys.argv) == 3:
-  if sys.argv[2][0]=='/':
-    storateDir = sys.argv[2]
-  else:
-    storageDir = os.path.join(musicDir,sys.argv[2])
+
 if storageDir[-1] != '/':
   storageDir = storageDir+'/'
+
 if not os.path.isdir(storageDir):
   os.mkdir(storageDir)
+
+match = re.compile(".*\.("+filetypes+")$")
 
 def listFiles(dr):
   dirs = os.listdir(dr)
   ret=[]
   for fil in dirs:
-    if os.path.isdir(os.path.join(dr,fil)):
-      ret.extend(listFiles(os.path.join(dr,fil)))
-    ret.append(dr+fil)
+    path=os.path.join(dr,fil)
+    if os.path.isdir(path):
+      ret.extend(listFiles(path))
+    if re.match(match, path):
+      ret.append(path)
   return ret
 
 # Get list of music dirs
